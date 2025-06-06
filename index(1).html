@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tralee Pitch and Putt Scorecard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 1em;
+      background: #f4f9ff;
+      color: #002b45;
+    }
+    h2, h3 {
+      text-align: center;
+    }
+    .rules {
+      background: #d8ecff;
+      padding: 1em;
+      border-radius: 8px;
+      margin-bottom: 1em;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 0.5em;
+      margin-bottom: 0.5em;
+      font-size: 1em;
+    }
+    button {
+      padding: 0.7em 1.2em;
+      margin: 0.5em 0;
+      background: #0074cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .hole-container {
+      margin: 1em 0;
+    }
+    .score-display {
+      margin-top: 1em;
+      background: #e1f0ff;
+      padding: 1em;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Tralee Pitch and Putt Scorecard</h2>
+  <div class="rules">
+    <h3>Course Rules</h3>
+    <ul>
+      <li>Maximum 4 players in a group.</li>
+      <li>Let faster groups play through as soon as possible.</li>
+      <li>Only putters should be used on the green.</li>
+      <li>Please respect the course, especially the greens. The whole club is run by volunteers.</li>
+    </ul>
+    <p><strong>Become a member of Tralee Pitch and Putt.</strong> We have social competitions every Thursday from April to October and you can play in club, county, provincial, and national competitions too. New members are always welcome.</p>
+    <p style="font-style: italic;">Visit: <a href="https://traleepitchandputt.com" target="_blank">traleepitchandputt.com</a></p>
+  </div>
+
+  <div id="setup">
+    <h3>Enter Player Names</h3>
+    <div id="playerInputs">
+      <input type="text" placeholder="Player 1" /><br/>
+      <input type="text" placeholder="Player 2" /><br/>
+      <input type="text" placeholder="Player 3" /><br/>
+      <input type="text" placeholder="Player 4" /><br/>
+    </div>
+    <button onclick="confirmPlayers()">Confirm Players</button>
+  </div>
+
+  <div id="scorecard" style="display:none;">
+    <h3 id="holeTitle">Hole 1 of 18 (Par 3)</h3>
+    <div class="hole-container" id="holeInputs"></div>
+    <button onclick="nextHole()">Next Hole</button>
+    <div class="score-display" id="scoreSummary"></div>
+  </div>
+
+  <script>
+    const par = 3;
+    const totalHoles = 18;
+    let currentHole = 1;
+    let players = [];
+    let scores = [];
+
+    function confirmPlayers() {
+      const inputs = document.querySelectorAll('#playerInputs input');
+      players = [];
+      scores = [];
+
+      inputs.forEach((input, i) => {
+        const name = input.value.trim();
+        if (name) {
+          players.push(name);
+          scores.push([]);
+        }
+      });
+
+      if (players.length === 0) {
+        alert("Please enter at least one player.");
+        return;
+      }
+
+      document.getElementById('setup').style.display = 'none';
+      document.getElementById('scorecard').style.display = 'block';
+      updateHole();
+    }
+
+    function updateHole() {
+      document.getElementById('holeTitle').textContent = `Hole ${currentHole} of ${totalHoles} (Par 3)`;
+      const container = document.getElementById('holeInputs');
+      container.innerHTML = '';
+      players.forEach((player, index) => {
+        container.innerHTML += `
+          <label>${player}'s Score:</label>
+          <input type="number" min="1" max="10" id="score-${index}" placeholder="Enter score for ${player}" required />
+        `;
+      });
+      updateScoreSummary();
+    }
+
+    function nextHole() {
+      const inputs = players.map((_, index) =>
+        document.getElementById(`score-${index}`).value
+      );
+
+      for (let i = 0; i < inputs.length; i++) {
+        const val = parseInt(inputs[i]);
+        if (isNaN(val) || val < 1 || val > 10) {
+          alert(`Please enter a valid score (1–10) for ${players[i]}`);
+          return;
+        }
+        scores[i].push(val);
+      }
+
+      if (currentHole === totalHoles) {
+        showFinalScores();
+      } else {
+        currentHole++;
+        updateHole();
+      }
+    }
+
+    function updateScoreSummary() {
+      let summary = '';
+      players.forEach((player, index) => {
+        const total = scores[index].reduce((a, b) => a + b, 0);
+        const holesPlayed = scores[index].length;
+        const toPar = total - (holesPlayed * par);
+        const prefix = toPar > 0 ? '+' : '';
+        summary += `<p><strong>${player}</strong>: ${holesPlayed} holes, Total: ${total}, To Par: ${prefix}${toPar}</p>`;
+      });
+      document.getElementById('scoreSummary').innerHTML = summary;
+    }
+
+    function showFinalScores() {
+      document.querySelector('button[onclick="nextHole()"]').style.display = 'none';
+      updateScoreSummary();
+      document.getElementById('holeTitle').textContent = "Round Complete";
+      document.getElementById('holeInputs').innerHTML = "<p>Thanks for playing!</p>";
+    }
+  </script>
+</body>
+</html>
